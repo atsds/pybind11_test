@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pybind11test", "src\app\pybind11test.vcxproj", "{E136111D-5450-434D-B16D-CD83F6A5A22C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E136111D-5450-434D-B16D-CD83F6A5A22C}.Debug|Win32.ActiveCfg = Debug|x64
+		{E136111D-5450-434D-B16D-CD83F6A5A22C}.Debug|x64.ActiveCfg = Debug|x64
+		{E136111D-5450-434D-B16D-CD83F6A5A22C}.Debug|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {281EB646-C98B-48EF-9656-02BA226F0E95}
+	EndGlobalSection
+EndGlobal

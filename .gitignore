@@ -1,0 +1,5 @@
+/bin/
+/obj/
+/.vs/
+/ipch/
+__pycache__

@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="dll64">
+      <UniqueIdentifier>{cdc5fc16-08ed-4123-96a3-889b45eba770}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data">
+      <UniqueIdentifier>{23e82877-d251-4ed2-a97d-d373742464f8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\bin\python\Python379_x64-cbs\python37.dll">
+      <Filter>dll64</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\data\test01.py">
+      <Filter>data</Filter>
+    </None>
+    <None Include="..\..\data\test02.py">
+      <Filter>data</Filter>
+    </None>
+    <None Include="..\..\data\test03.py">
+      <Filter>data</Filter>
+    </None>
+    <None Include="..\..\data\test04.py">
+      <Filter>data</Filter>
+    </None>
+    <None Include="..\..\data\test05.py">
+      <Filter>data</Filter>
+    </None>
+    <None Include="..\..\data\test06.py">
+      <Filter>data</Filter>
+    </None>
+    <None Include="..\..\data\test07.py">
+      <Filter>data</Filter>
+    </None>
+    <None Include="..\..\data\test08.py">
+      <Filter>data</Filter>
+    </None>
+    <None Include="..\..\data\test09.py">
+      <Filter>data</Filter>
+    </None>
+    <None Include="..\..\data\test10.py">
+      <Filter>data</Filter>
+    </None>
+  </ItemGroup>
+</Project>

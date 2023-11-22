@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="pybind11testネイティブ最小規則" ToolsVersion="17.0">
+  <Rules AnalyzerId="Microsoft.Analyzers.NativeCodeAnalysis" RuleNamespace="Microsoft.Rules.Native">
+    <Rule Id="C26494" Action="Warning" />
+    <Rule Id="C26495" Action="Warning" />
+    <Rule Id="C26496" Action="Warning" />
+    <Rule Id="C28209" Action="Warning" />
+    <Rule Id="C6244" Action="Warning" />
+    <Rule Id="C6246" Action="Warning" />
+  </Rules>
+</RuleSet>
