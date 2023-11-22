@@ -382,6 +382,19 @@ void embed_test10_implicit_type_convert() {
 }
 
 // -----------------------------------------------------------------------------------------------
+void embed_test11_manual_interpreter() {
+  printf("---------------------------------------------------------------------" __FUNCTION__ "\n");
+  py::initialize_interpreter();
+  {
+    py::module sys = py::module::import("sys");
+    py::cast<py::list>(sys.attr("path")).append("./data");
+    py::module_ m = py::module_::import("test11");
+    m.attr("test")();
+  }
+  py::finalize_interpreter(); // モジュール類が解放済であること！
+}
+
+// -----------------------------------------------------------------------------------------------
 //int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow) {
 int main(int argc, char* argv[]) {
   hello();
@@ -395,5 +408,6 @@ int main(int argc, char* argv[]) {
   embed_test08_operator();
   embed_test09();
   embed_test10_implicit_type_convert();
+  embed_test11_manual_interpreter();
   return 0;
 }
