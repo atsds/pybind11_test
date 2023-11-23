@@ -409,6 +409,21 @@ void embed_test12_python_class() {
 }
 
 // -----------------------------------------------------------------------------------------------
+void embed_test13_callable_check() {
+  printf("---------------------------------------------------------------------" __FUNCTION__ "\n");
+  py::scoped_interpreter guard{};
+  py::module sys = py::module::import("sys");
+  py::cast<py::list>(sys.attr("path")).append("./data");
+  py::module_ m = py::module_::import("test13");
+  py::object cls = m.attr("test_class");
+  py::object obj = cls();
+  py::object func = m.attr("func");
+  printf("hello callable : %s\n", PyCallable_Check(obj.attr("hello").ptr()) ? "ok" : "ng");
+  printf("var   callable : %s\n", PyCallable_Check(obj.attr("var").ptr()) ? "ok" : "ng");
+  printf("hello callable : %s\n", PyCallable_Check(func.ptr()) ? "ok" : "ng");
+}
+
+// -----------------------------------------------------------------------------------------------
 //int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow) {
 int main(int argc, char* argv[]) {
   hello();
@@ -424,5 +439,6 @@ int main(int argc, char* argv[]) {
   embed_test10_implicit_type_convert();
   embed_test11_manual_interpreter();
   embed_test12_python_class();
+  embed_test13_callable_check();
   return 0;
 }
