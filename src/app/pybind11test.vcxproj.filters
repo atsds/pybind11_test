@@ -54,5 +54,8 @@
     <None Include="..\..\data\test11.py">
       <Filter>data</Filter>
     </None>
+    <None Include="..\..\data\test12.py">
+      <Filter>data</Filter>
+    </None>
   </ItemGroup>
 </Project>

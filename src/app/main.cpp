@@ -395,6 +395,20 @@ void embed_test11_manual_interpreter() {
 }
 
 // -----------------------------------------------------------------------------------------------
+void embed_test12_python_class() {
+  printf("---------------------------------------------------------------------" __FUNCTION__ "\n");
+  py::scoped_interpreter guard{};
+  py::module sys = py::module::import("sys");
+  py::cast<py::list>(sys.attr("path")).append("./data");
+  py::module_ m = py::module_::import("test12");
+  py::object cls = m.attr("test_class");
+  py::object obj = cls();
+  obj.attr("hello")();
+  obj.attr("show_msg")();
+  cls.attr("classmethod_test")();
+}
+
+// -----------------------------------------------------------------------------------------------
 //int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow) {
 int main(int argc, char* argv[]) {
   hello();
@@ -409,5 +423,6 @@ int main(int argc, char* argv[]) {
   embed_test09();
   embed_test10_implicit_type_convert();
   embed_test11_manual_interpreter();
+  embed_test12_python_class();
   return 0;
 }

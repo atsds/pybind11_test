@@ -97,6 +97,7 @@
     <None Include="..\..\data\test09.py" />
     <None Include="..\..\data\test10.py" />
     <None Include="..\..\data\test11.py" />
+    <None Include="..\..\data\test12.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
