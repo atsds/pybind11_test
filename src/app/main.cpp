@@ -424,6 +424,85 @@ void embed_test13_callable_check() {
 }
 
 // -----------------------------------------------------------------------------------------------
+class test_class_cpp {
+public:
+  test_class_cpp(int p_value) { value = p_value; }
+  virtual ~test_class_cpp() { printf("destructor test_class_cpp\n"); }
+  int value;
+};
+
+class test_class_cpp_hidden {
+public:
+  test_class_cpp_hidden(int p_value) { value = p_value; }
+  virtual ~test_class_cpp_hidden() { printf("destructor test_class_cpp_hidden\n"); }
+  int value;
+};
+
+test_class_cpp* create_unique() { return new test_class_cpp(567); }
+
+test_class_cpp* raw_obj = new test_class_cpp(345);
+test_class_cpp* create_bad_unique() { return raw_obj; }
+
+shared_ptr<test_class_cpp> shared_obj;
+shared_ptr<test_class_cpp> create_shared() {
+  return shared_obj;
+}
+
+void embed_test14() {
+  printf("---------------------------------------------------------------------" __FUNCTION__ "\n");
+  py::scoped_interpreter guard{};
+  py::module sys = py::module::import("sys");
+  py::cast<py::list>(sys.attr("path")).append("./data");
+  py::module_ m = py::module_::import("test14");
+  py::object cls = m.attr("test_class_py");
+  auto* v = new test_class_cpp(123);
+  // 登録済クラスのポインタの受け渡しはそのままでOK
+  printf("************************* CASE 1\n");
+  py::object obj = cls(v);
+  auto* v2 = new test_class_cpp_hidden(234);
+  // 未登録クラスのポインタの受け渡しはNG
+  printf("************************* CASE 2\n");
+  try {
+    obj.attr("hello")(v2);
+  } catch (...) {
+    printf("cast error occured.\n");
+  }
+  printf(".\n");
+  delete v;
+  delete v2;
+  // unique_ptr(生ポインタも同様)を返すC++関数はunique_ptrとして扱われる
+  printf("************************* CASE 3\n");
+  {
+    m.attr("test_unique_ptr")();
+    // ここでデストラクタが走る
+    printf(".\n");
+    m.attr("test_bad_unique_ptr")();
+    // ここもデストラクタが走るのでraw_objの中身はVSのデバッグビルドによる解放済メモリとなっている
+    assert(raw_obj->value == 0xdddddddd);
+    printf(".\n");
+  }
+  // shared_ptr
+  printf("************************* CASE 3\n");
+  {
+    {
+      shared_obj = make_shared<test_class_cpp>(678);
+      m.attr("test_shared_ptr")();
+    printf(".\n");
+    }
+    // ここでデストラクタが走る
+  }
+}
+
+PYBIND11_EMBEDDED_MODULE(my_module14, m) {
+  using namespace pybind11::literals;
+  py::class_<test_class_cpp, std::shared_ptr<test_class_cpp> >(m, "test_class_cpp")
+    .def_readwrite("value", &test_class_cpp::value);
+  m.def("create_unique", &create_unique);
+  m.def("create_bad_unique", &create_bad_unique);
+  m.def("create_shared", &create_shared);
+}
+
+// -----------------------------------------------------------------------------------------------
 //int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow) {
 int main(int argc, char* argv[]) {
   hello();
@@ -440,5 +519,6 @@ int main(int argc, char* argv[]) {
   embed_test11_manual_interpreter();
   embed_test12_python_class();
   embed_test13_callable_check();
+  embed_test14();
   return 0;
 }
