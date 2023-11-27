@@ -503,13 +503,19 @@ PYBIND11_EMBEDDED_MODULE(my_module14, m) {
 }
 
 // -----------------------------------------------------------------------------------------------
-class cls15 {
+class TestClass {
 public:
-  cls15() { seq_ = seq_issuer_++; }
-  cls15(const cls15& src) { seq_ = seq_issuer_++; }
-  cls15(cls15&& src) { seq_ = src.seq_; src.seq_ = -1; }
+  TestClass() { seq_ = seq_issuer_++; }
+  TestClass(const TestClass& src) {
+    printf("copy ctor %p <= %p\n", this, &src);
+    seq_ = seq_issuer_++;
+  }
+  TestClass(TestClass&& src) {
+    printf("move ctor %p <= %p\n", this, &src);
+    seq_ = src.seq_; src.seq_ = -1;
+  }
 
-  virtual ~cls15() { printf("destructor %s\n", id().c_str()); }
+  virtual ~TestClass() { printf("destructor %s\n", id().c_str()); }
   string id() {
     std::stringstream ss;
     ss << std::hex << this << "-" << seq_;
@@ -518,39 +524,53 @@ public:
   int seq_;
   static int seq_issuer_;
 };
-int cls15::seq_issuer_ = 0;
+int TestClass::seq_issuer_ = 0;
 
-cls15* g_cls15ptr = nullptr;
+TestClass* g_test_class_ptr = nullptr;
+TestClass  g_test_class;
 
-cls15* get() {
-  printf("addr=%s\n", g_cls15ptr->id().c_str());
-  return g_cls15ptr;
+TestClass* get() {
+  printf("addr=%s\n", g_test_class_ptr->id().c_str());
+  return g_test_class_ptr;
 }
 
-class get_class {
+class GetClass {
 public:
-  virtual ~get_class() { printf("destructor get_class\n"); }
+  virtual ~GetClass() { printf("destructor GetClass\n"); }
 
-  cls15* get() {
-    printf("addr=%s\n", g_cls15ptr->id().c_str());
-    return g_cls15ptr;
+  TestClass* get() {
+    printf("addr=%s\n", g_test_class_ptr->id().c_str());
+    return g_test_class_ptr;
+  }
+
+  TestClass& lvalue() {
+    return g_test_class;
+  }
+  
+  TestClass rvalue() {
+    return TestClass();
   }
 };
 
 // 破壊済みオブジェクトか(0xdd)で埋められているか？ ※MSVC+debugビルド限定
-bool is_corrupted(cls15* p_ptr) {
+bool is_corrupted(TestClass* p_ptr) {
   return *(reinterpret_cast<uint64_t*>(p_ptr)) == 0xdddddddddddddddd;
 }
 
 PYBIND11_EMBEDDED_MODULE(my_module15, m) {
   using namespace pybind11::literals;
-  py::class_<cls15>(m, "cls15")
-    .def("id", &cls15::id);
-  py::class_<get_class>(m, "get_class")
+  py::class_<TestClass>(m, "TestClass")
+    .def("id", &TestClass::id);
+  py::class_<GetClass>(m, "GetClass")
     .def(py::init<>())
-    .def("get_reference_internal", &get_class::get, py::return_value_policy::reference_internal)
-    .def("get", &get_class::get)
-    .def("get_automatic", &get_class::get, py::return_value_policy::automatic);
+    .def("get_reference_internal", &GetClass::get, py::return_value_policy::reference_internal)
+    .def("get", &GetClass::get)
+    .def("get_auto", &GetClass::get, py::return_value_policy::automatic)
+    .def("lvalue", &GetClass::lvalue, py::return_value_policy::automatic)
+    .def("rvalue", &GetClass::rvalue, py::return_value_policy::automatic)
+    .def("get_ref", &GetClass::get, py::return_value_policy::reference)
+    .def("get_copy", &GetClass::get, py::return_value_policy::copy)
+    .def("get_move", &GetClass::get, py::return_value_policy::move);
   m.def("get", &get, py::return_value_policy::copy);
   m.def("get_take_ownership", &get, py::return_value_policy::take_ownership);
   m.def("get_move", &get, py::return_value_policy::move);
@@ -568,22 +588,22 @@ void embed_test15() {
   // オブジェクトはコピーされPythonによって管理される。
   // これはC++側と生存期間が分離されるため比較的安全である。
   printf("------test_copy\n");
-  g_cls15ptr = new cls15();
+  g_test_class_ptr = new TestClass();
   m.attr("test_copy")();
-  printf("addr(fin)=%s\n", g_cls15ptr->id().c_str());
-  if (!is_corrupted(g_cls15ptr)) {
-    delete g_cls15ptr;
+  printf("addr(end)=%s\n", g_test_class_ptr->id().c_str());
+  if (!is_corrupted(g_test_class_ptr)) {
+    delete g_test_class_ptr;
   }
   
   // オブジェクトはムーブされPythonによって管理される。
   // これはC++側と生存期間が分離されるため比較的安全である。
   // オブジェクトが渡されるときにmoveコンストラクタが起動する以外はコピーと同じ挙動となる。
   printf("------test_move\n");
-  g_cls15ptr = new cls15();
+  g_test_class_ptr = new TestClass();
   m.attr("test_move")();
-  printf("addr(fin)=%s\n", g_cls15ptr->id().c_str());
-  if (!is_corrupted(g_cls15ptr)) {
-    delete g_cls15ptr;
+  printf("addr(end)=%s\n", g_test_class_ptr->id().c_str());
+  if (!is_corrupted(g_test_class_ptr)) {
+    delete g_test_class_ptr;
   }
   
   // 既存のオブジェクトを参照し所有権を取得する。
@@ -591,22 +611,22 @@ void embed_test15() {
   // C++側で同様の事を行った場合やオブジェクトが動的確保されていない場合、動作は未定義となる。
   /// このようなケースではpython側で破棄されるためC++側で削除してはならない
   printf("------test_take_ownership\n");
-  g_cls15ptr = new cls15();
+  g_test_class_ptr = new TestClass();
   m.attr("test_take_ownership")();
-  printf("addr(fin)=%s\n", g_cls15ptr->id().c_str());
-  if (!is_corrupted(g_cls15ptr)) {
-    delete g_cls15ptr;
+  printf("addr(end)=%s\n", g_test_class_ptr->id().c_str());
+  if (!is_corrupted(g_test_class_ptr)) {
+    delete g_test_class_ptr;
   }
   
   // 既存のオブジェクトを参照するが所有権を取得しない。
   // C++側でオブジェクトの生存～破棄を管理する責任がある。
   // 警告：Python側で使用中にも関わらずC++で破棄した場合は未定義の動作となる。
   printf("------test_reference\n");
-  g_cls15ptr = new cls15();
+  g_test_class_ptr = new TestClass();
   m.attr("test_reference")();
-  printf("addr(fin)=%s\n", g_cls15ptr->id().c_str());
-  if (!is_corrupted(g_cls15ptr)) {
-    delete g_cls15ptr;
+  printf("addr(end)=%s\n", g_test_class_ptr->id().c_str());
+  if (!is_corrupted(g_test_class_ptr)) {
+    delete g_test_class_ptr;
   }
   
   // 親オブジェクトの生存期間と結びつける。
@@ -614,57 +634,60 @@ void embed_test15() {
   // ちなみにkeep_alive<0, 1>とは戻り値{0}が生存している限り親オブジェクト{1}の生存を保証する。
   // これはdef_property,def_readwrite等で作成されたプロパティのgetterのデフォルトポリシーである。
   printf("------test_reference_internal\n");
-  g_cls15ptr = new cls15();
+  g_test_class_ptr = new TestClass();
   try {
-    printf("---test_reference_internal1\n");
-    m.attr("test_reference_internal1")();
-    printf("---test_reference_internal2\n");
-    m.attr("test_reference_internal2")();
+    m.attr("test_reference_internal")();
   } catch (py::error_already_set &e) {
     py::print(string(e.what()) + "\n");
   }
-  printf("addr(fin)=%s\n", g_cls15ptr->id().c_str());
-  if (!is_corrupted(g_cls15ptr)) {
-    delete g_cls15ptr;
+  printf("addr(end)=%s\n", g_test_class_ptr->id().c_str());
+  if (!is_corrupted(g_test_class_ptr)) {
+    delete g_test_class_ptr;
   }
   // そもそも親オブジェクトがないのでポリシーを適用できない！
-  g_cls15ptr = new cls15();
+  g_test_class_ptr = new TestClass();
   try {
     printf("---test_reference_internal_ng\n");
     m.attr("test_reference_internal_ng")();
   } catch (py::error_already_set &e) {
     py::print(string(e.what()) + "\n");
   }
-  if (!is_corrupted(g_cls15ptr)) {
-    delete g_cls15ptr;
+  if (!is_corrupted(g_test_class_ptr)) {
+    delete g_test_class_ptr;
   }
   
   // 戻り値がポインタの場合take_ownershipとなり、それ以外はmove/copyとなる。
-  // py::class_
+  // py::class_でラップされた型のデフォルトポリシーとなる。
   printf("------automatic\n");
-  g_cls15ptr = new cls15();
+  g_test_class_ptr = new TestClass();
   try {
-    m.attr("test_automatic1")();
+    m.attr("test_automatic")();
   } catch (py::error_already_set &e) {
     py::print(string(e.what()) + "\n");
   }
-  printf("addr(fin)=%s\n", g_cls15ptr->id().c_str());
-  if (!is_corrupted(g_cls15ptr)) {
-    delete g_cls15ptr;
+  printf("addr(end)=%s\n", g_test_class_ptr->id().c_str());
+  if (!is_corrupted(g_test_class_ptr)) {
+    delete g_test_class_ptr;
   }
-  g_cls15ptr = new cls15();
-  try {
-    m.attr("test_automatic2")();
-  } catch (py::error_already_set &e) {
-    py::print(string(e.what()) + "\n");
-  }
-  printf("addr(fin)=%s\n", g_cls15ptr->id().c_str());
-  if (!is_corrupted(g_cls15ptr)) {
-    delete g_cls15ptr;
-  }
+
   // 戻り値がポインタの場合referenceとなる点以外はautomaticと同じ。
   // 明示的に使うことは多分ないとの事。
   printf("------automatic_reference\n");
+}
+
+void embed_test16() {
+  printf("---------------------------------------------------------------------" __FUNCTION__ "\n");
+  py::scoped_interpreter guard{};
+  py::module sys = py::module::import("sys");
+  py::cast<py::list>(sys.attr("path")).append("./data");
+  py::module_ m = py::module_::import("test15");
+
+  g_test_class_ptr = new TestClass();
+  m.attr("test_dupli")();
+  printf("addr(end)=%s\n", g_test_class_ptr->id().c_str());
+  if (!is_corrupted(g_test_class_ptr)) {
+    delete g_test_class_ptr;
+  }
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -686,5 +709,6 @@ int main(int argc, char* argv[]) {
   embed_test13_callable_check();
   embed_test14();
   embed_test15();
+  embed_test16();
   return 0;
 }

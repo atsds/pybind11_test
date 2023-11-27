@@ -20,26 +20,43 @@ def test_reference_internal_ng():
   tmp = my_module15.get_reference_internal_ng()
   print('addr(py)=', tmp.id())
   
-def test_reference_internal1():
+def test_reference_internal():
   def sub():
-    get_cls = my_module15.get_class()
+    get_cls = my_module15.GetClass()
     return get_cls.get_reference_internal()
   sub()
-  print('addr(py)=')
-  
-def test_reference_internal2():
-  def sub():
-    get_cls = my_module15.get_class()
-    return get_cls.get_reference_internal()
+  print('-----')
   tmp = sub()
   print('addr(py)=', tmp.id())
-
-def test_automatic1():
-  get_cls = my_module15.get_class()
-  tmp = get_cls.get_automatic()
+  
+def test_automatic():
+  get_cls = my_module15.GetClass()
+  print('--- pointer')
+  tmp = get_cls.get_auto()
   print('addr(py)=', tmp.id())
-
-def test_automatic2():
-  get_cls = my_module15.get_class()
-  tmp = get_cls.get()
+  del tmp
+  print('--- lvalue')
+  tmp = get_cls.lvalue()
   print('addr(py)=', tmp.id())
+  del tmp
+  print('--- rvalue')
+  tmp = get_cls.rvalue()
+  print('addr(py)=', tmp.id())
+  del tmp
+  print('----- ')
+  
+def test_dupli():
+  get_cls = my_module15.GetClass()
+  tmp3 = get_cls.get_ref()
+  print('get_auto addr(py)=', tmp3.id())
+  # 以下をコメントアウトするとオブジェクトが残り、以後のcopyとmoveが行われなくなる
+  del tmp3
+  print('----- ')
+  tmp2 = get_cls.get_copy()
+  print('get_copy addr(py)=', tmp2.id())
+  del tmp2
+  print('----- ')
+  tmp1 = get_cls.get_move()
+  print('get_move addr(py)=', tmp1.id())
+  del tmp1
+  print('----- ')
